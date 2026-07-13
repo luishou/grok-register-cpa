@@ -44,7 +44,14 @@ UI_BUTTON_BG = "#3a3a3a"
 UI_ACTIVE_BG = "#4a6078"
 
 DEFAULT_CONFIG = {
+    "email_provider": "duckmail",
+    "register_count": 1,
+    "proxy": "",
+    "enable_nsfw": True,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
     "duckmail_api_key": "",
+    "yyds_api_key": "",
+    "yyds_jwt": "",
     "cloudflare_api_base": "",
     "cloudflare_api_key": "",
     "cloudflare_auth_mode": "none",
@@ -53,10 +60,7 @@ DEFAULT_CONFIG = {
     "cloudflare_path_accounts": "/api/new_address",
     "cloudflare_path_token": "/api/token",
     "cloudflare_path_messages": "/api/mails",
-    "proxy": "http://127.0.0.1:7890",
-    "enable_nsfw": True,
-    "register_count": 1,
-    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "defaultDomains": "",
     # CLIProxyAPI(CPA) 直出：注册拿到 SSO 后自动 device-flow 换 token 并写成 CPA 扁平格式
     "cpa_auto_add": False,
     "cpa_auth_dir": "",

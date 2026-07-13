@@ -52,26 +52,75 @@ pip install -r requirements.txt
 cp config.example.json config.json
 ```
 
-编辑 `config.json` 后运行。
+仓库自带完整模板 [`config.example.json`](config.example.json)。  
+**不要直接改 example**，复制为本地 `config.json` 后再填真实值（`config.json` 已在 `.gitignore` 中，不会被提交）。
+
+```bash
+# 复制模板
+cp config.example.json config.json
+
+# 至少改这些（Cloudflare 邮箱 + 可选 CPA）
+#   email_provider / cloudflare_api_base / defaultDomains
+#   cpa_auto_add / cpa_auth_dir 或 cpa_remote_url + cpa_management_key
+```
+
+编辑完成后运行（见下方「运行」）。
 
 ## 配置
 
-| 配置项 | 说明 |
-| --- | --- |
-| `cpa_auto_add` | 是否开启 CPA 自动入库 |
-| `cpa_auth_dir` | 本地 CPA auth 目录；写入 `xai-<email>.json`，可留空 |
-| `cpa_remote_url` | 远程 CPA 地址，如 `http://你的CPA地址:8317` |
-| `cpa_management_key` | 远程 CPA 管理密钥（`remote-management.secret-key` 明文） |
-| `email_provider` | `duckmail` / `yyds` / `cloudflare` |
-| `register_count` | 目标注册数量 |
-| `proxy` | 代理；device-flow 换 token 也走此代理 |
-| `enable_nsfw` | 注册后是否尝试开启 NSFW |
-| `cloudflare_api_base` | Cloudflare 临时邮箱 API 根地址 |
-| `cloudflare_api_key` | 默认匿名模式留空；admin 模式填 `ADMIN_PASSWORD` |
-| `cloudflare_auth_mode` | `none` / `bearer` / `x-api-key` / `x-admin-auth` / `query-key` |
-| `cloudflare_custom_auth` | Worker 全局密码（`PASSWORDS`），注入 `x-custom-auth` |
-| `cloudflare_path_*` | domains / accounts / token / messages 路径 |
-| `defaultDomains` | Cloudflare 默认收信域名 |
+### 完整模板（与仓库 `config.example.json` 一致）
+
+```json
+{
+  "email_provider": "cloudflare",
+  "register_count": 1,
+  "proxy": "",
+  "enable_nsfw": true,
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+
+  "duckmail_api_key": "",
+
+  "yyds_api_key": "",
+  "yyds_jwt": "",
+
+  "cloudflare_api_base": "https://temp-mail.example.com",
+  "cloudflare_api_key": "",
+  "cloudflare_auth_mode": "none",
+  "cloudflare_custom_auth": "",
+  "cloudflare_path_domains": "/api/domains",
+  "cloudflare_path_accounts": "/api/new_address",
+  "cloudflare_path_token": "/api/token",
+  "cloudflare_path_messages": "/api/mails",
+  "defaultDomains": "example.com",
+
+  "cpa_auto_add": false,
+  "cpa_auth_dir": "",
+  "cpa_remote_url": "",
+  "cpa_management_key": ""
+}
+```
+
+### 字段说明
+
+| 配置项 | 必填？ | 说明 |
+| --- | --- | --- |
+| `email_provider` | 是 | `duckmail` / `yyds` / `cloudflare` |
+| `register_count` | 否 | 目标注册数量，默认 `1` |
+| `proxy` | 否 | HTTP 代理；device-flow 换 token 也走此代理，如 `http://127.0.0.1:7890` |
+| `enable_nsfw` | 否 | 注册后是否尝试开启 NSFW |
+| `user_agent` | 否 | 浏览器 UA |
+| `duckmail_api_key` | DuckMail 时 | DuckMail API Key |
+| `yyds_api_key` / `yyds_jwt` | YYDS 时 | YYDS 凭证 |
+| `cloudflare_api_base` | Cloudflare 时 **必填** | 临时邮箱 Worker API 根地址，如 `https://temp-mail.example.com` |
+| `cloudflare_api_key` | 视模式 | 匿名模式留空；admin 模式填 `ADMIN_PASSWORD` |
+| `cloudflare_auth_mode` | 否 | `none` / `bearer` / `x-api-key` / `x-admin-auth` / `query-key` |
+| `cloudflare_custom_auth` | 否 | Worker 全局密码（`PASSWORDS`），注入 `x-custom-auth` |
+| `cloudflare_path_*` | 否 | domains / accounts / token / messages 路径 |
+| `defaultDomains` | 建议填 | Cloudflare 默认收信域名 |
+| `cpa_auto_add` | 否 | 是否开启 CPA 自动入库 |
+| `cpa_auth_dir` | 本地入库时 | 本地 CPA auth 目录；写入 `xai-<email>.json` |
+| `cpa_remote_url` | 远程入库时 | 远程 CPA 地址，如 `http://你的CPA地址:8317` |
+| `cpa_management_key` | 远程入库时 | 远程 CPA 管理密钥（`remote-management.secret-key` 明文） |
 
 ### Cloudflare 邮箱（默认匿名）
 
