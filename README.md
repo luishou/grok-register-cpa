@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Grok Register — 注册即入库 CLIProxyAPI](assets/banner.png)](https://github.com/Git-creat7/grokRegister-cpa)
+[![Grok Register — 注册即入库 CLIProxyAPI](assets/banner.png)](https://github.com/luishou/grok-register-cpa)
 
 批量注册 Grok 账号，注册成功后自动把 OAuth 凭证写入 [CLIProxyAPI (CPA)](https://github.com/router-for-me/CLIProxyAPI)：支持本地 auth 目录热加载，也支持 Management API 远程上传。
 
@@ -46,8 +46,8 @@
 ## 安装
 
 ```bash
-git clone https://github.com/Git-creat7/grokRegister-cpa.git
-cd grokRegister-cpa
+git clone https://github.com/luishou/grok-register-cpa.git
+cd grok-register-cpa
 pip install -r requirements.txt
 cp config.example.json config.json
 ```
