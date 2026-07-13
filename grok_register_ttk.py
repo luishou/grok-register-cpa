@@ -758,6 +758,18 @@ def get_email_provider():
     return config.get("email_provider", "duckmail")
 
 
+def validate_registration_config():
+    """Validate settings that must be usable before starting Chromium."""
+    provider = str(get_email_provider() or "duckmail").strip().lower()
+    if provider not in ("duckmail", "yyds", "cloudflare"):
+        raise ValueError(f"不支持的邮箱服务商: {provider}")
+    if provider == "cloudflare" and not get_cloudflare_api_base():
+        raise ValueError(
+            "Cloudflare API Base 未配置；请在 config.json 的 "
+            "cloudflare_api_base 中填写临时邮箱 Worker API 根地址"
+        )
+
+
 def get_email_and_token(api_key=None):
     provider = get_email_provider()
     if provider == "yyds":
@@ -2796,6 +2808,7 @@ class GrokRegisterGUI:
 
     def run_registration(self, count):
         try:
+            validate_registration_config()
             start_browser(log_callback=self.log)
             self.log("[*] 浏览器已启动")
             i = 0
@@ -2989,6 +3002,7 @@ def run_registration_cli(count):
     cli_log(f"[*] 终端模式启动，目标数量: {count}")
     cli_log(f"[*] 成功账号将实时保存到: {accounts_output_file}")
     try:
+        validate_registration_config()
         start_browser(log_callback=cli_log)
         cli_log("[*] 浏览器已启动")
         i = 0

@@ -45,6 +45,23 @@ class CloudflareAdminCreateTests(unittest.TestCase):
         self.assertEqual(captured["json"], {})
         self.assertEqual(captured["headers"], {"Content-Type": "application/json"})
 
+    def test_validation_rejects_missing_cloudflare_api_base(self):
+        app.config.update({
+            "email_provider": "cloudflare",
+            "cloudflare_api_base": "",
+        })
+
+        with self.assertRaisesRegex(ValueError, "cloudflare_api_base"):
+            app.validate_registration_config()
+
+    def test_validation_accepts_configured_cloudflare_api_base(self):
+        app.config.update({
+            "email_provider": "cloudflare",
+            "cloudflare_api_base": "https://temp-mail.example.com",
+        })
+
+        self.assertIsNone(app.validate_registration_config())
+
     def test_app_uses_admin_new_address_with_x_admin_auth(self):
         app.config.update({
             "cloudflare_api_key": "admin-secret",
