@@ -33,7 +33,7 @@
 - 注册成功后自动入库 CPA（本地目录 / 远程 Management API，可同时开）
 - GUI + CLI 两种运行方式（CLI 仍会打开浏览器完成注册页）
 - Chromium/Chrome 自动处理 Turnstile
-- DuckMail / YYDS / Cloudflare / MailNest（Outlook）临时邮箱
+- DuckMail / YYDS / Cloudflare / MailNest（Outlook）/ CloudMail 临时邮箱
 - 注册后可选开启 NSFW
 - 页面卡住重试、验证码失败换邮箱、浏览器重启与内存清理
 - CLI：一次 `Ctrl+C` 安全停止，清理阶段不刷 traceback；再按一次强制中断
@@ -69,9 +69,13 @@ cp config.example.json config.json
 | `cpa_auth_dir` | 本地 CPA auth 目录；写入 `xai-<email>.json`，可留空 |
 | `cpa_remote_url` | 远程 CPA 地址，如 `http://你的CPA地址:8317` |
 | `cpa_management_key` | 远程 CPA 管理密钥（`remote-management.secret-key` 明文） |
-| `email_provider` | `duckmail` / `yyds` / `cloudflare` / `mailnest` |
+| `email_provider` | `duckmail` / `yyds` / `cloudflare` / `mailnest` / `cloudmail` |
 | `mailnest_api_key` | MailNest（迈巢 Outlook）API Key |
 | `mailnest_project_code` | MailNest 项目代码，默认 `x-ai001` |
+| `yyds_default_domain` | YYDS 固定收信域名；留空则自动选择已验证域名 |
+| `cloudmail_url` | CloudMail 站点根地址，不要附加 `/api` |
+| `cloudmail_admin_email` | CloudMail 管理员邮箱；也可用环境变量 `CLOUDMAIL_ADMIN_EMAIL` |
+| `cloudmail_password` | CloudMail 管理员密码；也可用环境变量 `CLOUDMAIL_PASSWORD` |
 | `register_count` | 目标注册数量 |
 | `proxy` | 代理；换 token 的 OAuth 请求也走此代理 |
 | `enable_nsfw` | 注册后是否尝试开启 NSFW |
@@ -80,7 +84,7 @@ cp config.example.json config.json
 | `cloudflare_auth_mode` | `none` / `bearer` / `x-api-key` / `x-admin-auth` / `query-key` |
 | `cloudflare_custom_auth` | Worker 全局密码（`PASSWORDS`），注入 `x-custom-auth` |
 | `cloudflare_path_*` | domains / accounts / token / messages 路径 |
-| `defaultDomains` | Cloudflare 默认收信域名 |
+| `defaultDomains` | Cloudflare / CloudMail 默认收信域名，多个用逗号分隔 |
 
 ### Cloudflare 邮箱（默认匿名）
 
@@ -139,6 +143,35 @@ Worker 若配置了全局 `PASSWORDS`，再加：
 
 - API Key：https://mailnest.top/account  
 - 项目代码：https://mailnest.top/buy-email（默认可直接用 `x-ai001`）
+
+### YYDS 邮箱固定域名
+
+默认自动选择已验证域名。若要固定收信域名：
+
+```json
+{
+  "email_provider": "yyds",
+  "yyds_default_domain": "你的收信域名.com"
+}
+```
+
+GUI「YYDS 收信域名」可填；留空则自动选择。
+
+### CloudMail 邮箱
+
+支持自建 [maillab/cloud-mail](https://github.com/maillab/cloud-mail)。程序用管理员接口创建随机地址，公开接口收信，结束后删除地址：
+
+```json
+{
+  "email_provider": "cloudmail",
+  "cloudmail_url": "https://mail.example.com",
+  "cloudmail_admin_email": "admin@example.com",
+  "cloudmail_password": "你的管理员密码",
+  "defaultDomains": "example.com"
+}
+```
+
+`cloudmail_url` 填站点根地址，不要附加 `/api`。也可用环境变量 `CLOUDMAIL_URL` / `CLOUDMAIL_ADMIN_EMAIL` / `CLOUDMAIL_PASSWORD`（优先于 config）。
 
 ## CPA 自动入库
 
