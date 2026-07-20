@@ -1518,10 +1518,18 @@ def setup_light_theme(root):
         root.option_add("*Text.Background", UI_ENTRY_BG)
         root.option_add("*Menu.Background", UI_ENTRY_BG)
         root.option_add("*Menu.Foreground", UI_FG)
+        # macOS Aqua 下 Combobox 下拉列表仍走原生 Listbox，需单独上色
+        root.option_add("*TCombobox*Listbox.background", UI_ENTRY_BG)
+        root.option_add("*TCombobox*Listbox.foreground", UI_FG)
+        root.option_add("*TCombobox*Listbox.selectBackground", UI_ACTIVE_BG)
+        root.option_add("*TCombobox*Listbox.selectForeground", UI_FG)
         style = ttk.Style(root)
         available = set(style.theme_names())
+        # clam 才能稳定改 Button/Combobox/Spinbox 配色；aqua 会忽略自定义色导致白底白字
         if "clam" in available:
             style.theme_use("clam")
+        elif "alt" in available:
+            style.theme_use("alt")
         elif "default" in available:
             style.theme_use("default")
         root.configure(bg=UI_BG)
@@ -1531,10 +1539,51 @@ def setup_light_theme(root):
         style.configure("TLabelframe.Label", background=UI_BG, foreground=UI_FG)
         style.configure("TLabel", background=UI_BG, foreground=UI_FG)
         style.configure("TCheckbutton", background=UI_BG, foreground=UI_FG)
-        style.configure("TButton", background=UI_BUTTON_BG, foreground=UI_FG)
-        style.configure("TEntry", fieldbackground=UI_ENTRY_BG, foreground=UI_FG)
-        style.configure("TCombobox", fieldbackground=UI_ENTRY_BG, foreground=UI_FG)
-        style.configure("TSpinbox", fieldbackground=UI_ENTRY_BG, foreground=UI_FG)
+        style.configure("TButton", background=UI_BUTTON_BG, foreground=UI_FG, padding=(10, 4))
+        style.map(
+            "TButton",
+            background=[
+                ("active", UI_ACTIVE_BG),
+                ("pressed", UI_ACTIVE_BG),
+                ("disabled", "#2f2f2f"),
+            ],
+            foreground=[("disabled", "#888888")],
+        )
+        style.configure(
+            "TEntry",
+            fieldbackground=UI_ENTRY_BG,
+            foreground=UI_FG,
+            insertcolor=UI_FG,
+        )
+        style.configure(
+            "TCombobox",
+            fieldbackground=UI_ENTRY_BG,
+            background=UI_BUTTON_BG,
+            foreground=UI_FG,
+            arrowcolor=UI_FG,
+            insertcolor=UI_FG,
+        )
+        style.map(
+            "TCombobox",
+            fieldbackground=[("readonly", UI_ENTRY_BG), ("disabled", "#2f2f2f")],
+            foreground=[("readonly", UI_FG), ("disabled", UI_MUTED_FG)],
+            background=[("readonly", UI_BUTTON_BG), ("disabled", "#2f2f2f")],
+            arrowcolor=[("readonly", UI_FG), ("disabled", "#777777")],
+        )
+        style.configure(
+            "TSpinbox",
+            fieldbackground=UI_ENTRY_BG,
+            background=UI_BUTTON_BG,
+            foreground=UI_FG,
+            arrowcolor=UI_FG,
+            insertcolor=UI_FG,
+        )
+        style.map(
+            "TSpinbox",
+            fieldbackground=[("disabled", "#2f2f2f")],
+            foreground=[("disabled", UI_MUTED_FG)],
+            arrowcolor=[("disabled", "#777777")],
+        )
     except Exception:
         pass
 
@@ -1561,21 +1610,8 @@ def tk_entry(parent, textvariable=None, width=30, **kwargs):
 
 
 def tk_button(parent, text="", command=None, state=tk.NORMAL, **kwargs):
-    return tk.Button(
-        parent,
-        text=text,
-        command=command,
-        state=state,
-        bg=UI_BUTTON_BG,
-        fg=UI_FG,
-        activebackground=UI_ACTIVE_BG,
-        activeforeground=UI_FG,
-        disabledforeground="#777777",
-        relief=tk.RAISED,
-        padx=10,
-        pady=3,
-        **kwargs,
-    )
+    # 用 ttk.Button：macOS 原生 tk.Button 忽略 bg/fg，会白底白字
+    return ttk.Button(parent, text=text, command=command, state=state, **kwargs)
 
 
 def tk_checkbutton(parent, text="", variable=None, **kwargs):
@@ -1583,29 +1619,36 @@ def tk_checkbutton(parent, text="", variable=None, **kwargs):
         parent,
         text=text,
         variable=variable,
-        bg=UI_BG,
+        bg=kwargs.pop("bg", UI_BG),
         fg=UI_FG,
-        activebackground=UI_BG,
+        activebackground=kwargs.pop("activebackground", UI_BG),
         activeforeground=UI_FG,
-        selectcolor="#3d7be0",
+        selectcolor="#1e3a5f",
+        highlightthickness=0,
         **kwargs,
     )
 
 
 def tk_option_menu(parent, variable, values, width=12):
-    menu = tk.OptionMenu(parent, variable, *values)
-    menu.configure(
+    # 用 ttk.Combobox：macOS 原生 OptionMenu/Menubutton 同样不吃自定义前景色
+    return ttk.Combobox(
+        parent,
+        textvariable=variable,
+        values=list(values),
         width=width,
-        bg=UI_ENTRY_BG,
-        fg=UI_FG,
-        activebackground=UI_ACTIVE_BG,
-        activeforeground=UI_FG,
-        highlightthickness=1,
-        highlightbackground="#555555",
-        relief=tk.SOLID,
+        state="readonly",
     )
-    menu["menu"].configure(bg=UI_ENTRY_BG, fg=UI_FG, activebackground=UI_ACTIVE_BG, activeforeground=UI_FG)
-    return menu
+
+
+def tk_spinbox(parent, from_=1, to=100, width=8, textvariable=None, **kwargs):
+    return ttk.Spinbox(
+        parent,
+        from_=from_,
+        to=to,
+        width=width,
+        textvariable=textvariable,
+        **kwargs,
+    )
 
 def should_close_browser_after_run(user_stopped: bool) -> bool:
     """正常结束默认关浏览器；用户主动停止时由 close_browser_on_stop 控制。"""
@@ -1747,19 +1790,12 @@ class GrokRegisterGUI:
 
         add_label(0, 2, "注册数量:")
         self.count_var = tk.StringVar(value=str(config.get("register_count", 1)))
-        self.count_spinbox = tk.Spinbox(
+        self.count_spinbox = tk_spinbox(
             config_frame,
             from_=1,
             to=2500,
             width=8,
             textvariable=self.count_var,
-            bg=UI_ENTRY_BG,
-            fg=UI_FG,
-            insertbackground=UI_FG,
-            buttonbackground=UI_BUTTON_BG,
-            disabledbackground="#2f2f2f",
-            disabledforeground=UI_MUTED_FG,
-            relief=tk.SOLID,
         )
         add_field(self.count_spinbox, 0, 3, sticky=tk.W)
 
@@ -1767,7 +1803,13 @@ class GrokRegisterGUI:
         opt_frame = tk.Frame(config_frame, bg=UI_PANEL_BG)
         add_field(opt_frame, 1, 1, sticky=tk.W)
         self.nsfw_var = tk.BooleanVar(value=config.get("enable_nsfw", True))
-        self.nsfw_check = tk_checkbutton(opt_frame, text="注册后开启 NSFW（可选）", variable=self.nsfw_var)
+        self.nsfw_check = tk_checkbutton(
+            opt_frame,
+            text="注册后开启 NSFW（可选）",
+            variable=self.nsfw_var,
+            bg=UI_PANEL_BG,
+            activebackground=UI_PANEL_BG,
+        )
         self.nsfw_check.pack(side=tk.LEFT)
         self.log_level_var = tk.StringVar(value=str(config.get("log_level", "info") or "info"))
         tk_label(opt_frame, text="日志:", bg=UI_PANEL_BG).pack(side=tk.LEFT, padx=(12, 2))
@@ -1880,6 +1922,8 @@ class GrokRegisterGUI:
                     self.provider_frame,
                     text="随机三级域名（user@子域.主域，需 Worker 开启 RANDOM_SUBDOMAIN）",
                     variable=self.cloudflare_random_subdomain_var,
+                    bg=UI_PANEL_BG,
+                    activebackground=UI_PANEL_BG,
                 ),
                 4,
                 0,
@@ -1957,19 +2001,12 @@ class GrokRegisterGUI:
 
         add_label(3, 0, "并发数（可选）:")
         self.workers_var = tk.StringVar(value=str(config.get("register_workers", 1)))
-        self.workers_spinbox = tk.Spinbox(
+        self.workers_spinbox = tk_spinbox(
             config_frame,
             from_=1,
             to=8,
             width=8,
             textvariable=self.workers_var,
-            bg=UI_ENTRY_BG,
-            fg=UI_FG,
-            insertbackground=UI_FG,
-            buttonbackground=UI_BUTTON_BG,
-            disabledbackground="#2f2f2f",
-            disabledforeground=UI_MUTED_FG,
-            relief=tk.SOLID,
         )
         add_field(self.workers_spinbox, 3, 1, sticky=tk.W)
 
@@ -1993,6 +2030,8 @@ class GrokRegisterGUI:
             self.cpa_frame,
             text="开启后注册成功会将 SSO 转为 CPA auth 并入库（不勾选则只保存 SSO）",
             variable=self.cpa_auto_add_var,
+            bg=UI_PANEL_BG,
+            activebackground=UI_PANEL_BG,
         ).grid(row=0, column=0, columnspan=4, sticky=tk.W, pady=3)
 
         self._cpa_detail_widgets = []
